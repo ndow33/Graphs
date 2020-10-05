@@ -101,7 +101,8 @@ class Graph:
             # loop through each neighboring node
             for neighbor in self.vertices[starting_vertex]:
                 
-                path = self.dft_recursive(neighbor, path)
+                self.dft_recursive(neighbor, path)
+        
         return path
                 
 
@@ -177,7 +178,7 @@ class Graph:
                     # enqueue the new path
                     q.push(new_path)
 
-    def dfs_recursive(self, starting_vertex, destination_vertex):
+    def dfs_recursive(self, starting_vertex, destination_vertex, path=[]):
         """
         Return a list containing a path from
         starting_vertex to destination_vertex in
@@ -185,7 +186,20 @@ class Graph:
 
         This should be done using recursion.
         """
-        pass  # TODO
+        print(path)
+        # base case
+        if starting_vertex == destination_vertex:
+            path.append(starting_vertex)
+            print(f'WHAT? {path}')
+        else:
+            # see if the starting vertex is already in the path:
+            if starting_vertex not in path:
+                # add starting vertex to the path
+                path.append(starting_vertex)
+                # get the neighbors
+                for neighbor in self.get_neighbors(starting_vertex):
+                    self.dfs_recursive(neighbor, destination_vertex, path)
+
 
 if __name__ == '__main__':
     graph = Graph()  # Instantiate your graph
