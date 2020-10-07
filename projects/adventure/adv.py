@@ -39,6 +39,7 @@ visited_rooms = set()
 player.current_room = world.starting_room
 visited_rooms.add(player.current_room.id)
 
+# construct my own traversal graph
 # create a dictionary
 d = dict()
 
