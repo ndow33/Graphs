@@ -114,7 +114,7 @@ class Graph:
         starting_vertex to destination_vertex in
         breath-first order.
         """
-        # create an empty queue and equeue a path to the starting vertex
+        # create an empty queue and enqueue a path to the starting vertex
         q = Queue()
         q.enqueue([starting_vertex])
         # Create a Set to store visited vertices
@@ -187,24 +187,33 @@ class Graph:
 
         This should be done using recursion.
         """
+        
         if visited is None:
+            # create a set to hold which nodes we have visited
             visited = set()
         
         if path is None:
+            # create a list to hold the path that we will
+            # ultimately return
             path = [starting_vertex]
         
-        print(starting_vertex)
+        # mark starting index as visited
         visited.add(starting_vertex)
 
+        # visit each neighbor
         for neighbor in self.get_neighbors(starting_vertex):
             if neighbor not in visited:
-
+                # create a new path to that node
                 new_path = path + [neighbor]
+
                 if neighbor == destination_vertex:
+                    # return the new path if it's the value we're searching for
                     return new_path
-                
+                # otherwise, call the method recursively using the new path
+                # and the new set of visited nodes
                 dfs_path = self.dfs_recursive(neighbor, destination_vertex, visited, new_path)
 
+                # return the path
                 if dfs_path is not None:
                     return dfs_path
         
