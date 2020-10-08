@@ -1,7 +1,7 @@
 from room import Room
 from player import Player
 from world import World
-from util import Stack, Queue  # These may come in handy
+from util import Stack, Queue
 
 import random
 from ast import literal_eval
@@ -12,10 +12,10 @@ world = World()
 
 # You may uncomment the smaller graphs for development and testing purposes.
 # map_file = "projects\\adventure\maps\\test_line.txt"
-map_file = "projects\\adventure\maps\\test_cross.txt"
+# map_file = "projects\\adventure\maps\\test_cross.txt"
 # map_file = "projects\\adventure\maps\\test_loop.txt"
 # map_file = "projects\\adventure\maps\\test_loop_fork.txt"
-# map_file = "projects\\adventure\maps\main_maze.txt"
+map_file = "projects\\adventure\maps\main_maze.txt"
 
 # Loads the map into a dictionary
 room_graph=literal_eval(open(map_file, "r").read())
@@ -39,149 +39,173 @@ visited_rooms = set()
 player.current_room = world.starting_room
 visited_rooms.add(player.current_room.id)
 
+
 # construct my own traversal graph
-# create a dictionary
-d = dict()
+rooms = dict()
 
-# get the current room id
-cur_id = player.current_room.id
 
-# get the room's exits
-cur_exits = player.current_room.get_exits()
+opposite_dir = dict()
+opposite_dir['n'] = 's'
+opposite_dir['s'] = 'n'
+opposite_dir['e'] = 'w'
+opposite_dir['w'] = 'e'
 
-# make another dictionary of the exits
-d2 = dict()
 
-# mark all exits with a question mark
-for exit in cur_exits:
-    # print(player.current_room.get_room_in_direction(exit))
-    d2[exit] = '?'
+# this function makes a new dictionary of unknown exits
+# for rooms that are new to our rooms dictionary
+# this is simply a helper function
+def new_room(room):
+    # get the exits of the current room
+    exits = room.get_exits()
+    room_exits = dict()
+    # put them in a dictionary
+    for exit in exits:
+        room_exits[exit] = '?'  
+    # return that dictionary
+    return room_exits
 
-# store d2 in d
-d[cur_id] = d2
 
-counter = 0
-# while len(visited_rooms) < len(room_graph):
-while counter < 2:    
-    # ?'s get priority
-    for direction in d[cur_id]:
-        if '?' in d[cur_id][direction]:
-            print(direction)
-            print('yep')
-    while 'n' in d[cur_id]:
-        if d[cur_id]['n'] == '?':
-            # add 'n' to our traversal path
-            traversal_path.append('n')
-            # update the value of 'n' in d2
-            d[cur_id]['n'] = player.current_room.get_room_in_direction('n').id
-            # travel to the next room
-            player.travel('n')
-            # update cur_id
-            cur_id = player.current_room.id
-            # if the cur_id is not in the visited rooms
-            if cur_id not in visited_rooms:
-                # update the visited rooms
-                visited_rooms.add(cur_id)
-                # get the room's exits
-                cur_exits = player.current_room.get_exits()
-                # create a new dictionary of directions
-                d2 = dict()
-                # mark all exits with a question mark
-                for exit in cur_exits:
-                    # print(player.current_room.get_room_in_direction(exit))
-                    d2[exit] = '?'
-                # update dictionary
-                d[cur_id] = d2
-        else:
-            break
+# define function to get available exits
+def available_exits(room):
+    # get the room's id
+    room_id = room.id
+    # create list to hold available exits
+    exits = []
+    # put them in a dictionary
+    for exit in rooms[room_id]:
+        if rooms[room_id][exit] == '?':
+            exits.append(exit)
+    
+    return exits
 
-    print(d)
-    while 's' in d[cur_id]:
-        # add 'n' to our traversal path
-        traversal_path.append('s')
-        # update the value of 'n' in d2
-        d[cur_id]['s'] = player.current_room.get_room_in_direction('s').id
-        # travel to the next room
-        player.travel('s')
-        # update cur_id
-        cur_id = player.current_room.id
-        # if the room hasn't been visited
-        if cur_id not in visited_rooms:
-            # update the visited rooms
-            visited_rooms.add(cur_id)
-            # get the room's exits
-            cur_exits = player.current_room.get_exits()
-            # create a new dictionary of directions
-            d2 = dict()
-            # mark all exits with a question mark
-            for exit in cur_exits:
-                # print(player.current_room.get_room_in_direction(exit))
-                d2[exit] = '?'
-            # update dictionary
-            d[cur_id] = d2
+def dft(room):
+    # find the list of exits for the given room
+    exits = available_exits(room)
+    # run this code as long as there are undiscovered exits
+    while len(exits) > 0:
+        # randomly choose a direction from the list of available exits
+        index = random.randint(0, len(exits)-1)
+        direction = exits[index]
 
-    while 'e' in d[cur_id]:
-        # add 'n' to our traversal path
-        traversal_path.append('e')
-        # update the value of 'n' in d2
-        d[cur_id]['e'] = player.current_room.get_room_in_direction('e').id
-        # travel to the next room
-        player.travel('e')
-        # update cur_id
-        cur_id = player.current_room.id
-        # if the room hasn't been visited
-        if cur_id not in visited_rooms:
-            # update the visited rooms
-            visited_rooms.add(cur_id)
-            # get the room's exits
-            cur_exits = player.current_room.get_exits()
-            # create a new dictionary of directions
-            d2 = dict()
-            # mark all exits with a question mark
-            for exit in cur_exits:
-                # print(player.current_room.get_room_in_direction(exit))
-                d2[exit] = '?'
-            # update dictionary
-            d[cur_id] = d2
+        # store the current room we're in to a variable so we can reference later once we travel
+        old_room = room
 
-    while 'w' in d[cur_id]:
-        # add 'n' to our traversal path
-        traversal_path.append('w')
-        # update the value of 'n' in d2
-        d[cur_id]['w'] = player.current_room.get_room_in_direction('w').id
-        # travel to the next room
-        player.travel('w')
-        # update cur_id
-        cur_id = player.current_room.id
-        # if the room hasn't been visited
-        if cur_id not in visited_rooms:
-            # update the visited rooms
-            visited_rooms.add(cur_id)
-            # get the room's exits
-            cur_exits = player.current_room.get_exits()
-            # create a new dictionary of directions
-            d2 = dict()
-            # mark all exits with a question mark
-            for exit in cur_exits:
-                # print(player.current_room.get_room_in_direction(exit))
-                d2[exit] = '?'
-            # update dictionary
-            d[cur_id] = d2
+        # append that direction to traversal_path
+        traversal_path.append(direction)
 
-    counter +=1
-print(f'current room: {cur_id}')    
-print(d)
-print(traversal_path)
-print(len(room_graph))
-# reset starting room
+        # travel that direction 
+        player.travel(direction)
+        # update the room
+        room = player.current_room
+        # if the new room is not in our rooms dictionary
+        if room.id not in rooms:
+            # add it to the dictionary with its exits in a dicionary
+            rooms[room.id] = new_room(room)
+
+        # find the opposite direction
+        opp = opposite_dir[direction]
+        # Make sure the directions are updated for each room
+        rooms[room.id][opp] = old_room.id
+        rooms[old_room.id][direction] = room.id
+
+        # update the list of exits
+        exits = available_exits(room)
+
+# define a function that finds the nearest room with ?'s
+def bfs(room):
+    q = Queue()
+    visited = set()
+    # create a list of room objects
+    q.enqueue([room])
+
+    while q.size() > 0:
+        # dequeue the list of room objects
+        path = q.dequeue()
+        # access the most recently added room object
+        last_vert = path[-1]
+        # if that vertex hasn't been visited
+        if last_vert not in visited:
+            # check if it has ?'s
+            if len(available_exits(last_vert)) > 0:
+                # return the room object
+                return [last_vert, path]
+
+            # otherwise mark it as visited
+            visited.add(last_vert)
+            # then add a path to its neighbors to the back of the queue
+            for direction in rooms[last_vert.id]:
+                # copy the path
+                new_path = path.copy()
+                # add a new room object to it
+                new_path.append(last_vert.get_room_in_direction(direction))
+                # enqueue the new path
+                q.enqueue(new_path)
+    return None
+
+
+# convert a path of numbers to a path of directions
+# function takes a list of room id's
+def to_direction(path):
+    directions = []
+    # loop through each index of the list except the last one
+    for index in range(0, len(path)-1):
+        # get the id of the current room and the next room
+        current_room = path[index].id
+        next_room = path[index+1].id
+        # get the exits of the current room 
+        exits = rooms[current_room]
+        # loop through the list of exits
+        for direction in exits:
+            # if the next_room is one of those exits
+            if exits[direction] == next_room:
+                # add the direction to the directions list
+                directions.append(direction)
+
+    # return a list of directions
+    return directions
+
+
+
+
+# reset the player at the starting room and traversal path
+traversal_path = []
+rooms = dict()
 player.current_room = world.starting_room
-# reset set
-visited_rooms = set()
+
+id = player.current_room.id
+rooms[id] = new_room(player.current_room)
+
+while len(rooms) < len(room_graph):
+    # do a dft from the current room
+    dft(player.current_room)
+    print(f'rooms visited {len(rooms)}')
+    print(f'traversals {len(traversal_path)}')
+    print(f'current room {player.current_room.id}')
+    if len(rooms) < len(room_graph):
+        # find the path to the nearest room with ?'s
+        path = bfs(player.current_room)[1]
+        print('BFS done')
+        # convert that path to a list of directions
+        directions = to_direction(path)
+        print('to_directions done')
+        # loop through the directions
+        for direction in directions:
+            # add the direction to the master traversal path
+            traversal_path.append(direction)
+            # move player
+            player.travel(direction)
+        print('loop done')
+        print('====================================================')
+        print('')
+
+
+# reset the player at the starting room
+player.current_room = world.starting_room
+
 for move in traversal_path:
     player.travel(move)
     visited_rooms.add(player.current_room.id)
 
-print(visited_rooms)
 if len(visited_rooms) == len(room_graph):
     print(f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited")
 else:
